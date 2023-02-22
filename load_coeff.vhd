@@ -14,11 +14,11 @@ entity load_coeff is
             --signal from controller 
             --ld2mem      : in std_logic;
             --read data
-            coeff       : in std_logic_vector(15 downto 0);     
+            --coeff       : in std_logic_vector(15 downto 0);     
             --control signal 
-            start_ld_coeff    : out std_logic;
+            --start_ld_coeff    : out std_logic;
             --feedback to controller 
-            ld2mem_done : out std_logic;
+            --ld2mem_done : out std_logic;
             --coeff to memory   
             --coeff2mem   : out std_logic_vector(15 downto 0);
             
@@ -40,17 +40,28 @@ end load_coeff;
 
 architecture Behavioral of load_coeff is
 
-component SRAM_SP_WRAPPER
+component SRAM_coe
   port (
-    ClkxCI  : in  std_logic;
-    CSxSI   : in  std_logic;            -- Active Low
-    WExSI   : in  std_logic;            --Active Low
-    AddrxDI : in  std_logic_vector (7 downto 0);
-    RYxSO   : out std_logic;
-    DataxDI : in  std_logic_vector (31 downto 0);
-    DataxDO : out std_logic_vector (31 downto 0)
+    clk     : in  std_logic;            --Active Low
+    we      : in std_logic;
+    a       : in  std_logic_vector (6 downto 0);
+    d       : in  std_logic_vector (15 downto 0);
+    qspo    : out std_logic_vector (15 downto 0)
     );
 end component;
+
+
+--component SRAM_SP_WRAPPER
+--  port (
+--    ClkxCI  : in  std_logic;
+--    CSxSI   : in  std_logic;            -- Active Low
+--    WExSI   : in  std_logic;            --Active Low
+--    AddrxDI : in  std_logic_vector (7 downto 0);
+--    RYxSO   : out std_logic;
+--    DataxDI : in  std_logic_vector (31 downto 0);
+--    DataxDO : out std_logic_vector (31 downto 0)
+--    );
+--end component;
 
 component ff is
   generic(N:integer:=1);
@@ -66,8 +77,8 @@ end component;
 --SRAM---------------------------------------------
 signal choose       : std_logic;
 signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
-signal address      : std_logic_vector(7 downto 0);
-signal RY_ram       : std_logic;
+signal address      : std_logic_vector(6 downto 0);
+--signal RY_ram       : std_logic;
 ---------------------------------------------------
 
 
@@ -76,25 +87,37 @@ signal state_reg, state_nxt : state_type;
 
 signal counter_1, counter_1_nxt : std_logic_vector(5 downto 0) := (others => '0');
 
-signal coeff_32 : std_logic_vector(31 downto 0);
-signal data_coeff_32 : std_logic_vector(31 downto 0);
+signal coeff_32 : std_logic_vector(15 downto 0);
+signal data_coeff_32 : std_logic_vector(15 downto 0);
+signal coeff       : std_logic_vector(15 downto 0);
 
 begin
 --SRAM bits transfer----------------------
-coeff_32 <= "0000000000000000" & coeff;
+coeff_32 <= coeff;
 data_coeff <= data_coeff_32(15 downto 0);
 ------------------------------------------
 
-Ram_coeff: SRAM_SP_WRAPPER
-port map(
-    ClkxCI             => clk             ,
-    CSxSI              => choose          , -- Active Low 
-    WExSI              => r_or_w          , -- Active Low 
-    AddrxDI            => address         ,
-    RYxSO              => RY_ram          ,
-    DataxDI            => coeff_32        ,
-    DataxDO            => data_coeff_32
+--Ram_coeff: SRAM_SP_WRAPPER
+--port map(
+--    ClkxCI             => clk             ,
+--    CSxSI              => choose          , -- Active Low 
+--    WExSI              => r_or_w          , -- Active Low 
+--    AddrxDI            => address         ,
+--    RYxSO              => RY_ram          ,
+--    DataxDI            => coeff_32        ,
+--    DataxDO            => data_coeff_32
+--    );
+
+Ram_coeff: SRAM_coe
+  port map(
+    clk     => clk,            
+    we      => r_or_w,
+    a       => address,
+    d       => coeff_32,
+    qspo    => data_coeff_32
     );
+
+
 
 --state contrl--------------------------------
 process(clk, reset)
@@ -114,12 +137,12 @@ begin
     
     --SRAM------------------------------
     choose <= '1';
-    r_or_w <= '1';--read
-    address <= "00" & counter_1;
+    r_or_w <= '0';--read
+    address <= "0" & counter_1;
     ------------------------------------
 
-    start_ld_coeff <= '0';
-    ld2mem_done <= '0';
+    --start_ld_coeff <= '0';
+    --ld2mem_done <= '0';
 
     counter_1_nxt <= (others => '0');
     multi_en <= '0';
@@ -136,8 +159,8 @@ begin
         
         when s_op =>
             choose <= '0';
-            r_or_w <= '1'; --read 
-            address <= "00" & counter_1;
+            r_or_w <= '0'; --read 
+            address <= "0" & counter_1;
             counter_1_nxt <= counter_1;
             if counter_1 = "111000" then --counter = 56 (address = 0 -55)
                 state_nxt <= s_initial; 
@@ -151,8 +174,8 @@ begin
             
          when s_send2multi => 
             choose <= '0';
-            r_or_w <= '1'; --read
-            address <= "00" & counter_1;
+            r_or_w <= '0'; --read
+            address <= "0" & counter_1;
 
             counter_1_nxt <= counter_1 + 1;
 

@@ -10,11 +10,11 @@ entity controller is
             clk, reset  : in std_logic;
             start       : in std_logic;
             
-            ld2mem_done : in std_logic;
+            --ld2mem_done : in std_logic;
             ld_input_done   : in std_logic;
             multi_done  : in std_logic;
             
-            ld2mem      : out std_logic;
+            --ld2mem      : out std_logic;
             ld_input    : out std_logic;
             op_en       : out std_logic
   
@@ -53,10 +53,10 @@ begin
 end process;
 
 --state machine--------------------------------------------
-process(state_reg, start, ld2mem_done, ld_input_done, multi_done, counter14)
+process(state_reg, start, ld_input_done, multi_done, counter14)
 begin
     
-    ld2mem <= '0';
+    --ld2mem <= '0';
     ld_input <= '0';
     op_en <= '0';
 --    flag1_nxt <= "0";

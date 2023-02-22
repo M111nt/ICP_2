@@ -11,7 +11,7 @@ entity load_input is
             clk, reset  : in std_logic;
             -----------------------------------------------------
             ld_input    : in std_logic;
-            input       : in std_logic_vector(15 downto 0);
+            --input       : in std_logic_vector(15 downto 0);
             ld_input_done   : out std_logic;--feedback to controller
             
             --op part ------------------------------------------- 
@@ -29,6 +29,16 @@ end load_input;
 
 architecture Behavioral of load_input is
 
+component SRAM_input
+  port (
+    clk     : in  std_logic;            --Active Low
+    we      : in std_logic;
+    a       : in  std_logic_vector (6 downto 0);
+    d       : in  std_logic_vector (15 downto 0);
+    qspo    : out std_logic_vector (15 downto 0)
+    );
+end component;
+
 component ff is
   generic(N:integer:=1);
   port(   D  :  in std_logic_vector(N-1 downto 0);
@@ -38,7 +48,15 @@ component ff is
       );
 end component;
 
-type state_type is (s_initial, s_ld_input, s_send2multi, s_send2multi_w1, s_send2multi_w2);
+--SRAM---------------------------------------------
+signal choose       : std_logic;
+signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
+signal address      : std_logic_vector(6 downto 0);
+--signal RY_ram       : std_logic;
+---------------------------------------------------
+
+
+type state_type is (s_initial, s_ld_input_1, s_ld_input_2, s_send2multi, s_send2multi_w1, s_send2multi_w2);
 signal state_reg, state_nxt : state_type;
 
 signal reg_1, reg_1_nxt : std_logic_vector(15 downto 0);
@@ -60,8 +78,23 @@ signal counter2, counter2_nxt : std_logic_vector(1 downto 0) := (others => '0');
 --control the loop will be executed 14 times
 signal counter3, counter3_nxt : std_logic_vector(3 downto 0) := (others => '0');
 
+signal counter4, counter4_nxt : std_logic_vector(3 downto 0) := (others => '0');
+
+signal input_32 : std_logic_vector(15 downto 0);
+signal input    : std_logic_vector(15 downto 0);
+
 
 begin
+
+Ram_input: SRAM_input
+  port map(
+    clk     => clk,            
+    we      => r_or_w,
+    a       => address,
+    d       => input_32,
+    qspo    => input 
+    );
+
 
 --state contrl----------------------------------------------
 process(clk, reset)
@@ -75,33 +108,35 @@ begin
 end process;
 
 --state machine --------------------------------------------
-process(state_reg, ld_input, op_en, counter1, counter2, counter3, hold)
+process(state_reg, ld_input, op_en, counter1, counter2, counter3, counter4, hold)
 begin 
     start_ld_input <= '0';
     ld_input_done <= '0';
     counter1_nxt <= (others => '0');
     counter2_nxt <= (others => '0');                    
     counter3_nxt <= (others => '0'); 
+    counter4_nxt <= counter4;
     flag1 <= '0';
     flag2 <= '0';
     hold_nxt <= (others => '0'); 
+    r_or_w <= '0'; --always read
+    address <= "000" & counter4;
     
     case state_reg is 
     
         when s_initial => 
             if ld_input = '1' and op_en = '0' then 
                 start_ld_input <= '1';--give signal to outside
-                state_nxt <= s_ld_input;
+                state_nxt <= s_ld_input_1;
             elsif ld_input = '0' and op_en = '1' then 
                 state_nxt <= s_send2multi_w1;
             else
                 state_nxt <= s_initial;
             end if;
         
-        when s_ld_input => 
-            
+        when s_ld_input_1 => 
             flag1 <= '1'; 
-            if counter1 = "011" then 
+            if counter1 > "011" then 
                 start_ld_input <= '1';
                 ld_input_done <= '1';
                 counter1_nxt <= (others => '0');
@@ -109,19 +144,23 @@ begin
             else
                 start_ld_input <= '1';
                 ld_input_done <= '0';
-                counter1_nxt <= counter1 + 1;
-                state_nxt <= s_ld_input;
+                --address <= "000" & counter4;
+                counter1_nxt <= counter1;
+                state_nxt <= s_ld_input_2;
             end if;
         
+        when s_ld_input_2 =>
+            flag1 <= '1';
+            counter4_nxt <= counter4 + 1;
+            --address <= "000" & counter4;
+            counter1_nxt <= counter1 + 1;
+            state_nxt <= s_ld_input_1;         
                 
         when s_send2multi_w1 =>
             state_nxt <= s_send2multi_w2;
         
         when s_send2multi_w2 =>
-            state_nxt <= s_send2multi;
-        
-        
-        
+            state_nxt <= s_send2multi;        
         
         when s_send2multi =>
             flag2 <= '1';
@@ -146,10 +185,8 @@ begin
                     state_nxt <= s_send2multi;
                 end if;
             end if;
-            
-    
+  
     end case;
-
 
 end process;
 
@@ -225,6 +262,14 @@ counter_03: FF
             clk     =>clk,
             reset   =>reset
       );
+      
+counter_04: FF 
+  generic map(N => 4)
+  port map(   D     =>counter4_nxt,
+              Q     =>counter4,
+            clk     =>clk,
+            reset   =>reset
+      );      
 
 hold_time : FF 
   generic map(N => 1)
