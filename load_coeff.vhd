@@ -9,22 +9,7 @@ use ieee.numeric_std.all;
 entity load_coeff is
   Port ( 
             clk, reset  : in std_logic;
-            
-            --load coeff part -----------------------------------
-            --signal from controller 
-            --ld2mem      : in std_logic;
-            --read data
-            --coeff       : in std_logic_vector(15 downto 0);     
-            --control signal 
-            --start_ld_coeff    : out std_logic;
-            --feedback to controller 
-            --ld2mem_done : out std_logic;
-            --coeff to memory   
-            --coeff2mem   : out std_logic_vector(15 downto 0);
-            
-            -----------------------------------------------------
-            
-            --op part ------------------------------------------- 
+
             --signal from controller 
             op_en       : in std_logic;
             --control signal to multiply
@@ -51,17 +36,6 @@ component SRAM_coe
 end component;
 
 
---component SRAM_SP_WRAPPER
---  port (
---    ClkxCI  : in  std_logic;
---    CSxSI   : in  std_logic;            -- Active Low
---    WExSI   : in  std_logic;            --Active Low
---    AddrxDI : in  std_logic_vector (7 downto 0);
---    RYxSO   : out std_logic;
---    DataxDI : in  std_logic_vector (31 downto 0);
---    DataxDO : out std_logic_vector (31 downto 0)
---    );
---end component;
 
 component ff is
   generic(N:integer:=1);
@@ -78,7 +52,6 @@ end component;
 signal choose       : std_logic;
 signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
 signal address      : std_logic_vector(6 downto 0);
---signal RY_ram       : std_logic;
 ---------------------------------------------------
 
 
@@ -97,16 +70,6 @@ coeff_32 <= coeff;
 data_coeff <= data_coeff_32(15 downto 0);
 ------------------------------------------
 
---Ram_coeff: SRAM_SP_WRAPPER
---port map(
---    ClkxCI             => clk             ,
---    CSxSI              => choose          , -- Active Low 
---    WExSI              => r_or_w          , -- Active Low 
---    AddrxDI            => address         ,
---    RYxSO              => RY_ram          ,
---    DataxDI            => coeff_32        ,
---    DataxDO            => data_coeff_32
---    );
 
 Ram_coeff: SRAM_coe
   port map(
@@ -140,9 +103,6 @@ begin
     r_or_w <= '0';--read
     address <= "0" & counter_1;
     ------------------------------------
-
-    --start_ld_coeff <= '0';
-    --ld2mem_done <= '0';
 
     counter_1_nxt <= (others => '0');
     multi_en <= '0';

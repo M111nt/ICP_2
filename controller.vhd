@@ -10,11 +10,9 @@ entity controller is
             clk, reset  : in std_logic;
             start       : in std_logic;
             
-            --ld2mem_done : in std_logic;
             ld_input_done   : in std_logic;
             multi_done  : in std_logic;
             
-            --ld2mem      : out std_logic;
             ld_input    : out std_logic;
             op_en       : out std_logic
   
@@ -35,7 +33,6 @@ end component;
 type state_type is (s_initial, s_ld_input, s_op);
 signal state_reg, state_nxt : state_type;
 
---signal flag1, flag1_nxt : std_logic_vector(0 downto 0) := (others => '0');
 signal counter14, counter14_nxt : std_logic_vector(3 downto 0) := (others => '0');
 
 
@@ -56,10 +53,8 @@ end process;
 process(state_reg, start, ld_input_done, multi_done, counter14)
 begin
     
-    --ld2mem <= '0';
     ld_input <= '0';
     op_en <= '0';
---    flag1_nxt <= "0";
     counter14_nxt <= counter14;
 
     case state_reg is 
@@ -67,16 +62,13 @@ begin
         when s_initial =>
         counter14_nxt <= (others => '0'); 
             if start = '1' then 
---               flag1_nxt <= "1";
                state_nxt <= s_ld_input;       
             else
---               flag1_nxt <= "1";
                state_nxt <= s_initial;
             end if;       
             
         
         when s_ld_input => 
---            flag1_nxt <= "1";
             
             ld_input <= '1';
             if ld_input_done = '1' then 
@@ -88,7 +80,6 @@ begin
             
         
         when s_op => 
---            flag1_nxt <= "1";
             if multi_done = '1' then 
                 if counter14 = "1101" then 
                     counter14_nxt <= (others => '0');
@@ -112,13 +103,6 @@ begin
 
 end process;
 
---flag_01: FF 
---  generic map(N => 1)
---  port map(   D     =>flag1_nxt,
---              Q     =>flag1,
---            clk     =>clk,
---            reset   =>reset
---      );
 
 counter_14: FF 
   generic map(N => 4)

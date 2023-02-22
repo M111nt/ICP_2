@@ -18,18 +18,6 @@ end store;
 
 architecture Behavioral of store is
 
---component SRAM_SP_WRAPPER
---  port (
---    ClkxCI  : in  std_logic;
---    CSxSI   : in  std_logic;            -- Active Low
---    WExSI   : in  std_logic;            --Active Low
---    AddrxDI : in  std_logic_vector (7 downto 0);
---    RYxSO   : out std_logic;
---    DataxDI : in  std_logic_vector (31 downto 0);
---    DataxDO : out std_logic_vector (31 downto 0)
---    );
---end component;
-
 component SRAM_store
   port (
     clk     : in  std_logic;            --Active Low
@@ -51,13 +39,12 @@ end component;
 
 --SRAM---------------------------------------------
 signal choose       : std_logic;
-signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
+signal r_or_w       : std_logic; 
 signal address      : std_logic_vector(8 downto 0) := (others => '0');
 signal RY_ram       : std_logic;
 signal sram_out     : std_logic_vector(31 downto 0);
 ---------------------------------------------------
 signal address_nxt  : std_logic_vector(8 downto 0);
---signal address_sel  : std_logic_vector(7 downto 0);
 
 
 signal store_data_32 : std_logic_vector(31 downto 0);
@@ -67,16 +54,6 @@ begin
 store_data_32 <= "00000000000000" & data_out;
 ------------------------------------------
 
---Ram_coeff: SRAM_SP_WRAPPER
---port map(
---    ClkxCI             => clk             ,
---    CSxSI              => choose          , -- Active Low 
---    WExSI              => r_or_w          , -- Active Low --only write in this module
---    AddrxDI            => address         ,
---    RYxSO              => RY_ram          ,
---    DataxDI            => store_data_32   ,
---    DataxDO            => sram_out 
---    );
 
 Ram_store: SRAM_store
   port map(

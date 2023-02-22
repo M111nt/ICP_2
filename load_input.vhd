@@ -11,7 +11,6 @@ entity load_input is
             clk, reset  : in std_logic;
             -----------------------------------------------------
             ld_input    : in std_logic;
-            --input       : in std_logic_vector(15 downto 0);
             ld_input_done   : out std_logic;--feedback to controller
             
             --op part ------------------------------------------- 
@@ -52,11 +51,10 @@ end component;
 signal choose       : std_logic;
 signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
 signal address      : std_logic_vector(6 downto 0);
---signal RY_ram       : std_logic;
 ---------------------------------------------------
 
 
-type state_type is (s_initial, s_ld_input_1, s_ld_input_2, s_send2multi, s_send2multi_w1, s_send2multi_w2);
+type state_type is (s_initial, s_ld_input_1, s_ld_input_2, s_send2multi, s_send2multi_w1);
 signal state_reg, state_nxt : state_type;
 
 signal reg_1, reg_1_nxt : std_logic_vector(15 downto 0);
@@ -144,7 +142,6 @@ begin
             else
                 start_ld_input <= '1';
                 ld_input_done <= '0';
-                --address <= "000" & counter4;
                 counter1_nxt <= counter1;
                 state_nxt <= s_ld_input_2;
             end if;
@@ -152,16 +149,12 @@ begin
         when s_ld_input_2 =>
             flag1 <= '1';
             counter4_nxt <= counter4 + 1;
-            --address <= "000" & counter4;
             counter1_nxt <= counter1 + 1;
             state_nxt <= s_ld_input_1;         
                 
         when s_send2multi_w1 =>
-            state_nxt <= s_send2multi_w2;
-        
-        when s_send2multi_w2 =>
-            state_nxt <= s_send2multi;        
-        
+            state_nxt <= s_send2multi;
+                
         when s_send2multi =>
             flag2 <= '1';
             if hold = "0" then 
@@ -189,7 +182,6 @@ begin
     end case;
 
 end process;
-
 
 
 reg_1_nxt <= input when counter1 = "000" and flag1 = '1' else reg_1;
