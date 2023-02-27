@@ -32,7 +32,6 @@ end component;
 
 type state_type is (s_initial, s_ld_input, s_op);
 signal state_reg, state_nxt : state_type;
-
 signal counter14, counter14_nxt : std_logic_vector(3 downto 0) := (others => '0');
 
 
@@ -60,7 +59,7 @@ begin
     case state_reg is 
     
         when s_initial =>
-        counter14_nxt <= (others => '0'); 
+            counter14_nxt <= (others => '0'); 
             if start = '1' then 
                state_nxt <= s_ld_input;       
             else
@@ -69,7 +68,6 @@ begin
             
         
         when s_ld_input => 
-            
             ld_input <= '1';
             if ld_input_done = '1' then 
                 state_nxt <= s_op;
@@ -95,14 +93,10 @@ begin
                 counter14_nxt <= counter14;
                 state_nxt <= s_op;
             end if;            
-            
     
     end case;
 
-
-
 end process;
-
 
 counter_14: FF 
   generic map(N => 4)

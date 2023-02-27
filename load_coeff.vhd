@@ -9,17 +9,12 @@ use ieee.numeric_std.all;
 entity load_coeff is
   Port ( 
             clk, reset  : in std_logic;
-
             --signal from controller 
             op_en       : in std_logic;
             --control signal to multiply
             multi_en    : out std_logic;
             --coeff to multiply
             data_coeff  : out std_logic_vector(15 downto 0)
-            
-            -----------------------------------------------------
-
-  
   );
 end load_coeff;
 
@@ -27,14 +22,13 @@ architecture Behavioral of load_coeff is
 
 component SRAM_coe
   port (
-    clk     : in  std_logic;            --Active Low
+    clk     : in  std_logic;            
     we      : in std_logic;
     a       : in  std_logic_vector (6 downto 0);
     d       : in  std_logic_vector (15 downto 0);
     qspo    : out std_logic_vector (15 downto 0)
     );
 end component;
-
 
 
 component ff is
@@ -47,10 +41,9 @@ component ff is
 end component;
 
 
-
 --SRAM---------------------------------------------
 signal choose       : std_logic;
-signal r_or_w       : std_logic; -- Active Low (reand & write) --write '0' --read '1'
+signal r_or_w       : std_logic; 
 signal address      : std_logic_vector(6 downto 0);
 ---------------------------------------------------
 

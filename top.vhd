@@ -14,7 +14,8 @@ entity top is
         --output
         start_ld_inputo : out std_logic;
         start_ld_coeffo : out std_logic;
-        max_outo        : out std_logic_vector(17 downto 0)
+        max_outo        : out std_logic_vector(17 downto 0);
+        clk_out         : out std_logic
   );
 end top;
 
@@ -24,13 +25,10 @@ component controller is
   Port ( 
             clk, reset  : in std_logic;
             start       : in std_logic;
-            
             ld_input_done   : in std_logic;
             multi_done  : in std_logic;
-            
             ld_input    : out std_logic;
             op_en       : out std_logic
-  
   );
 end component;
 
@@ -84,7 +82,8 @@ component max is
             clk, reset  : in std_logic;
             max_en      : in std_logic;
             data_out    : in std_logic_vector(17 downto 0);
-            max_out     : out std_logic_vector(17 downto 0) 
+            max_out     : out std_logic_vector(17 downto 0);
+            clk_out     : out std_logic 
   );
 end component;
 
@@ -94,6 +93,7 @@ signal ld_input_done    : std_logic;
 signal multi_done       : std_logic;
 signal ld_input         : std_logic;
 signal op_en            : std_logic;
+--signal state_show       : std_logic_vector(1 downto 0);
 
 --ld_coeff
 signal multi_en            :  std_logic;
@@ -114,7 +114,7 @@ signal max_en      : std_logic;
 ---------------------------------------------------------
 
 begin
-
+--clk_out <= clki;
 controller_part: controller
 port map(
             clk           => clki          ,
@@ -123,7 +123,7 @@ port map(
             ld_input_done => ld_input_done  ,
             multi_done    => multi_done    ,               
             ld_input      => ld_input      ,
-            op_en         => op_en   
+            op_en         => op_en  
 );
 
 coeff_part: load_coeff
@@ -174,7 +174,8 @@ port map(
             reset    => reseti,   
             max_en   => max_en,  
             data_out => data_out,
-            max_out  => max_outo 
+            max_out  => max_outo,
+            clk_out  => clk_out 
 );
 
 

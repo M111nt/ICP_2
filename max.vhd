@@ -16,8 +16,8 @@ entity max is
             
             -----------------------------------------------------
             --find the maximum data
-            max_out     : out std_logic_vector(17 downto 0) 
-            
+            max_out     : out std_logic_vector(17 downto 0); 
+            clk_out     : out std_logic
             -----------------------------------------------------
   
   );
@@ -37,17 +37,11 @@ end component;
 signal count, count_nxt : std_logic_vector(6 downto 0); 
 signal data_max, data_max_nxt   : std_logic_vector(17 downto 0) := (others => '0');
 
-begin
 
-process(max_en)
 begin
-    if max_en = '1' then 
-        max_out <= data_max; 
-    else 
-        max_out <= (others => '0'); 
-    end if;
-    
-end process;
+max_out <= data_max; 
+clk_out <= clk;
+
 
 data_max_nxt <= data_out when data_max < data_out else data_max; 
 
